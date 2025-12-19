@@ -1,32 +1,113 @@
-# Trabalho Final FIA – LTNtorch (Raciocínio Espacial Neuro-Simbólico)
+# 3º Trabalho — LTN / Neuro-Symbolic (FIA)
 
-Implementação das Tarefas 1–4 do enunciado de FIA usando LTN em PyTorch, com cenário CLEVR simplificado (vetores 11-D). Notebook principal: `LTN_Tutorial_3oAssignment.ipynb`.
+Implementação de um sistema **Neuro-Simbólico (NeSy)** usando **Logic Tensor Networks (LTN)** para raciocínio com **lógica fuzzy** sobre um **dataset estilo CLEVR simplificado** (objetos 2D com cor, forma, tamanho e relações espaciais). O repositório foi organizado para seguir o formato de entrega pedido no enunciado: **código + texto no GitHub** (via notebook) + **resultados experimentais (5 execuções)** + **ponto extra de explicações**.
 
-## O que foi feito
-- Gerador de cenas CLEVR-like (25 objetos) com cores/formas/tamanho (small/medium/big) e relações espaciais (left/right, below/above, close, in_between, can_stack).
-- Predicados neurais (MLPs) e conectivos/quantificadores fuzzy; axiomas de unicidade/cobertura, regras horizontais e verticais, consultas compostas e opcionais.
-- Pipeline de treino maximizando satAgg, métricas (acc/prec/recall/F1) e explicações (nota extra).
-- Célula de avaliação da imagem do grupo para testar a cena usada pelo professor.
+---
 
-## Dependências principais
-- Python 3.13+, PyTorch CPU, TensorFlow (via `ltn`), pandas, scikit-learn, matplotlib, numpy.
+## ✅ Entregas
 
-## Como rodar
-1. Abra `LTN_Tutorial_3oAssignment.ipynb` em Jupyter/Lab.
-2. Rode as células na ordem:
-   - Geração/plot de cena.
-   - Treino e métricas (seed exemplo).
-   - Experimentos 5× (seeds 0–4).
-3. Para avaliar a imagem do grupo, use a seção “Avaliação da imagem do grupo” no final:
-   - Edite `objects_manual` com `(id, x_grid, y_grid, cor, forma, size_scalar)` no grid 0–20.
-   - Execute a célula: ela recalcula relações, treina e mostra satAgg, métricas, queries e explicações.
+No notebook final (`LTN_Tutorial_3oAssignment.ipynb`) você encontra:
 
-## Estrutura
-- `LTN_Tutorial_3oAssignment.ipynb`: notebook completo com geração, axiomas, treino, métricas, consultas e avaliação de imagem.
+1. **Texto**: introdução a **NeSy** e **LTN**
+2. **Dataset**: inspiração no **CLEVR** e descrição da versão simplificada usada (vetor 11D)
+3. **Satisfação**: valor de satisfação das **fórmulas específicas** no **conjunto de teste** (inclui tabela “sat por fórmula”)
+4. **Experimentos**: resultados para **5 execuções** (5 datasets aleatórios distintos), com:
 
-## Observações
-- Tamanho tratado em 3 classes: small (<1/3), medium (entre), big (>2/3), com `size_scalar` contínuo para regras de estabilidade/igualdade de tamanho.
-- Ajuste `epochs` e `THRESH` no notebook conforme tempo/threshold desejados.
+   * **satAgg de cada pergunta e fórmula**
+   * **Acurácia, Precisão, Recall e F1**
+5. **Ponto extra**: **explicação** de cada resposta (raciocínio em linguagem natural a partir das regras e scores)
 
-## Integrantes
-- (preencher nomes dos alunos do grupo)
+---
+
+## 🧠 Visão geral da solução
+
+### Dataset (CLEVR simplificado)
+
+Cada objeto é representado por um vetor **11D**:
+
+| Campo              | Dimensão | Descrição                                      |
+| ------------------ | -------- | ---------------------------------------------- |
+| `pos_x`, `pos_y`   | 2        | posição no plano (normalizada)                 |
+| `colors` (one-hot) | 3        | {vermelho, verde, azul}                        |
+| `shapes` (one-hot) | 5        | {circulo, quadrado, cilindro, cone, triangulo} |
+| `size`             | 1        | escalar em [0,1] (pequeno/grande)              |
+
+### Predicados e regras
+
+* Predicados **treináveis via redes neurais (MLPs)**:
+
+  * **unários**: atributos (cor/forma/tamanho)
+  * **binários**: relações (left/right/below/above/close/same_size/can_stack)
+  * **ternário**: `in_between`
+* Axiomas das tarefas:
+
+  * **T1**: cobertura/exclusividade de forma + consistência pequeno/grande
+  * **T2**: raciocínio horizontal (irreflexivo, assimetria, inversos, transitividade, etc.)
+  * **T3**: raciocínio vertical + inverso + transitividade + `can_stack`
+  * **T4**: consultas (queries) e regra de proximidade
+  * Inclui também `lastOnTheLeft` e `lastOnTheRight`.
+
+### Treinamento
+
+O treino otimiza a satisfação de uma **KB (knowledge base)** via agregação `SatAgg`, com backprop (ex.: Adam). Os experimentos repetem o pipeline completo para **5 seeds** (5 datasets aleatórios).
+
+---
+
+## 📂 Arquivos
+
+* `LTN_Tutorial_3oAssignment.ipynb`
+
+  * ✅ Notebook final no formato exigido (seções 1–5, métricas, tabelas, explicações)
+
+---
+
+## 🧪 O que o notebook imprime (resultados)
+
+### 1) Tabela com 5 execuções (5 seeds)
+
+Inclui:
+
+* `sat_test`, `sat_manual`
+* consultas `q1/q2/q3` (teste e manual)
+* `F1` das relações: `left`, `right`, `in_between`, `can_stack`
+* `acc_shape`, `acc_size`
+
+E um resumo **média ± desvio** para as métricas principais.
+
+### 2) Satisfação por fórmula (seed 0)
+
+Tabela com a satisfação individual dos axiomas no **teste** e no **manual**, incluindo:
+
+* fórmulas T1, T2, T3
+* `lastOnTheLeft` / `lastOnTheRight`
+
+### 3) Ponto extra — explicações
+
+Para as consultas (ex.: Q1 e Q2), o notebook:
+
+* seleciona o **melhor grounding** (quais objetos maximizam o `Exists`)
+* mostra **tabela de objetos** + **tabela de scores**
+* gera **explicação em linguagem natural**, destacando o literal “gargalo” que mais derruba a consulta
+
+---
+
+## 🧭 Mapa do notebook (onde está cada item pedido)
+
+* **1 — NeSy e LTN**
+* **2 — CLEVR e dataset simplificado (11D)**
+* **3 — Predicados, conectivos e axiomas**
+* **4 — Entregas e experimentos**
+  * 4.1 Satisfação das fórmulas no teste
+  * 4.2 Métricas (acc/prec/recall/F1)
+  * 4.3 5 execuções + média±desvio + sat por fórmula
+* **5 — Ponto extra: explicações**
+---
+
+## ✍️ Equipe
+
+- Yago Lobato — yagobrlobato@icomp.ufam.edu.br  
+- Nathã Barbosa — NathaBarbosa@icomp.ufam.edu.br  
+- Matheus Santarém — matheus.santarem@icomp.ufam.edu.br  
+- Emanuel Andriola — Emanuel.moraes@icomp.ufam.edu.br  
+- Daniel Trindade — daniel.trindade@icomp.ufam.edu.br  
+- Cristiano Cardoso — cristiano.lima@icomp.ufam.edu.br
