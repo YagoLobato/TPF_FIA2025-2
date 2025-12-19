@@ -29,4 +29,9 @@ Implementação das Tarefas 1–4 do enunciado de FIA usando LTN em PyTorch, com
 - Ajuste `epochs` e `THRESH` no notebook conforme tempo/threshold desejados.
 
 ## Integrantes
-- (preencher nomes dos alunos do grupo)
+- Yago Lobato — yagobrlobato@icomp.ufam.edu.br  
+- Nathã Barbosa — NathaBarbosa@icomp.ufam.edu.br  
+- Matheus Santarém — matheus.santarem@icomp.ufam.edu.br  
+- Emanuel Andriola — Emanuel.moraes@icomp.ufam.edu.br  
+- Daniel Trindade — daniel.trindade@icomp.ufam.edu.br  
+- Cristiano Cardoso — cristiano.lima@icomp.ufam.edu.br
